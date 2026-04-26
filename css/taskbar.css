@@ -1,0 +1,77 @@
+#taskbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--taskbar-h);
+  background: var(--col-taskbar);
+  border-top: 1px solid rgba(255,255,255,0.4);
+  display: flex; align-items: center;
+  padding: 0 4px; gap: 4px;
+  z-index: 1000;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.3);
+}
+
+/* ── Start button ── */
+#start-btn {
+  height: 32px; padding: 0 10px;
+  background: var(--col-start-btn);
+  border: 1px solid rgba(0,0,0,0.3); border-radius: 12px;
+  color: #fff; font-family: var(--font-ui); font-size: 12px; font-weight: bold;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  flex-shrink: 0; letter-spacing: 0.3px; transition: filter 0.1s;
+}
+#start-btn:hover  { filter: brightness(1.1); }
+#start-btn:active { filter: brightness(0.95); }
+.start-icon { font-size: 16px; }
+
+/* ── Taskbar items ── */
+#taskbar-items { flex: 1; display: flex; gap: 3px; overflow: hidden; }
+.taskbar-item {
+  height: 28px; max-width: 160px; min-width: 100px;
+  padding: 0 8px;
+  background: linear-gradient(180deg,#3b7dd8 0%,#1a4cba 100%);
+  border: 1px solid rgba(0,0,0,0.4); border-radius: 3px;
+  color: #fff; font-family: var(--font-ui); font-size: 10px;
+  cursor: pointer; display: flex; align-items: center; gap: 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.taskbar-item.active { background: linear-gradient(180deg,#1a4cba 0%,#3b7dd8 100%); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3); }
+.taskbar-item:hover  { filter: brightness(1.15); }
+
+/* ── System tray ── */
+#taskbar-tray {
+  flex-shrink: 0; height: 32px;
+  background: linear-gradient(180deg,#1550c0 0%,#0e3c9e 100%);
+  border: 1px solid rgba(0,0,0,0.3); border-radius: 3px;
+  padding: 0 10px; display: flex; align-items: center; gap: 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+#clock { color: #fff; font-family: var(--font-ui); font-size: 11px; text-align: center; line-height: 1.3; min-width: 50px; }
+
+/* ── Start Menu ── */
+#start-menu {
+  position: fixed; bottom: var(--taskbar-h); left: 0;
+  width: 280px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.5); border-radius: 4px 4px 0 0;
+  box-shadow: 3px -3px 12px rgba(0,0,0,0.4);
+  z-index: 1001; overflow: hidden;
+}
+
+.start-header {
+  background: linear-gradient(90deg,#1e5bcf 0%,#3a7fd5 100%);
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+}
+.start-avatar { font-size: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+.start-username { color: #fff; font-size: 13px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+
+#start-app-list { list-style: none; padding: 6px 0; max-height: 360px; overflow-y: auto; }
+#start-app-list li { padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 11px; }
+#start-app-list li:hover { background: var(--col-highlight); color: #fff; }
+#start-app-list li .menu-icon  { font-size: 18px; flex-shrink: 0; }
+#start-app-list li .menu-label { flex: 1; }
+
+.start-footer { background: linear-gradient(180deg,#2460d9 0%,#1a4cba 100%); padding: 6px 14px; display: flex; justify-content: flex-end; }
+.start-footer button { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; font-family: var(--font-ui); font-size: 11px; padding: 4px 10px; cursor: pointer; border-radius: 2px; }
+.start-footer button:hover { background: rgba(255,255,255,0.15); }

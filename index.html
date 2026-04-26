@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Mithras</title>
+        <link rel="stylesheet" href="css/os.css" />
+        <link rel="stylesheet" href="css/windows.css" />
+        <link rel="stylesheet" href="css/taskbar.css" />
+    </head>
+    <body>
+        <div id="desktop">
+            <div id="desktop-icons"></div>
+            <div id="selection-rect"></div>
+            <div id="window-layer"></div>
+
+            <!-- Desktop right-click menu -->
+            <div id="ctx-desktop" class="ctx-menu hidden">
+                <ul>
+                    <li onclick="Desktop.refresh()">🔄 Refresh</li>
+                    <li class="ctx-sep"></li>
+                    <li class="ctx-has-sub">
+                        🗂️ Arrange Icons By ▶
+                        <ul class="ctx-submenu">
+                            <li onclick="Desktop.arrange('name')">Name</li>
+                            <li onclick="Desktop.arrange('type')">Type</li>
+                        </ul>
+                    </li>
+                    <li class="ctx-sep"></li>
+                    <li onclick="Wallpaper.openDialog()">🖼️ Wallpaper…</li>
+                    <li onclick="Screensaver.openDialog()">💤 Screen Saver…</li>
+                </ul>
+            </div>
+
+            <!-- Icon right-click menu -->
+            <div id="ctx-icon" class="ctx-menu hidden">
+                <ul>
+                    <li onclick="CtxIcon.open()">📂 Open</li>
+                    <li class="ctx-sep"></li>
+                    <li onclick="CtxIcon.rename()">✏️ Rename</li>
+                    <li class="ctx-sep"></li>
+                    <li onclick="CtxIcon.props()">ℹ️ Properties</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Taskbar -->
+        <div id="taskbar">
+            <button id="start-btn" onclick="toggleStartMenu()">
+                <span class="start-icon">🖥</span>
+                <span>Start</span>
+            </button>
+            <div id="taskbar-items"></div>
+            <div id="taskbar-tray"><span id="clock"></span></div>
+        </div>
+
+        <!-- Start Menu -->
+        <div id="start-menu" class="hidden">
+            <div class="start-header">
+                <div class="start-avatar">👤</div>
+                <div class="start-username">Mithras</div>
+            </div>
+            <ul id="start-app-list"></ul>
+            <div class="start-footer">
+                <button onclick="showShutdown()">⏻ Shut Down</button>
+            </div>
+        </div>
+
+        <!-- Shutdown overlay -->
+        <div id="shutdown-overlay" class="hidden">
+            <div id="shutdown-box">
+                <p>It is now safe to close your browser.</p>
+                <button
+                    onclick="
+                        document
+                            .getElementById('shutdown-overlay')
+                            .classList.add('hidden')
+                    "
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <script src="js/apps.js"></script>
+        <script src="js/wm.js"></script>
+        <script src="js/desktop.js"></script>
+        <script src="js/wallpaper.js"></script>
+        <script src="js/screensaver.js"></script>
+        <script src="js/os.js"></script>
+    </body>
+</html>
