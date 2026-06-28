@@ -13,9 +13,9 @@
 .window.focused  { z-index: 500; }
 .window.minimized { display: none !important; }
 
-/* Mobile: windows fill viewport */
+/* Mobile: windows fill viewport — exclude Webamp's internal .window divs */
 @media (max-width: 600px) {
-  .window {
+  .window:not(#__webamp_container__ .window):not([class*="webamp"]) {
     min-width: unset !important;
     min-height: unset !important;
     width: 100% !important;

@@ -204,14 +204,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
 .hidden { display: none !important; }
 
 /* ── Webamp CSS-collision fix ──
-   Webamp uses generic class names like "window" that collide with our
-   .window rule. Neutralise our chrome styles inside Webamp's container. */
-#__webamp_container__ .window,
-#__webamp_container__ .window *,
-#__webamp_container__ * {
-  border: none !important;
+   Only neutralise the specific WM chrome properties that bleed into Webamp.
+   Do NOT touch border/box-shadow — Webamp needs those for its own skin rendering. */
+#__webamp_container__ .window {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  left: auto !important;
+  top: auto !important;
+  background: transparent !important;
+  display: block !important;
+  flex-direction: unset !important;
   outline: none !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
 }
 
