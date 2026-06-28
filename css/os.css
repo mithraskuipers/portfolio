@@ -26,7 +26,14 @@
   --taskbar-h: 40px;
 }
 
+/* ── Mobile: taller taskbar for touch ── */
+@media (max-width: 600px) {
+  :root { --taskbar-h: 48px; }
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+#webamp *, #webamp *::before, #webamp *::after { box-sizing: content-box; }
+
 html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font-ui); font-size: 11px; user-select: none; }
 
 /* ── Desktop ── */
@@ -54,7 +61,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
 #desktop-icons {
   position: absolute; inset: 0;
   z-index: 10;
-  pointer-events: none; /* children get their own pointer-events */
+  pointer-events: none;
 }
 
 /* ── Desktop icon ── */
@@ -89,6 +96,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
   border: 1px solid var(--col-highlight);
   padding: 0 2px; border-radius: 1px;
   text-shadow: none; cursor: text;
+}
+
+/* ── Mobile icons: bigger touch targets ── */
+@media (max-width: 600px) {
+  .desktop-icon { width: 80px; }
+  .desktop-icon .icon-img { font-size: 44px; }
+  .desktop-icon .icon-label { font-size: 11px; }
 }
 
 /* ── Rubber-band selection rect ── */
@@ -133,6 +147,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
 }
 .ctx-sep:hover { background: var(--col-btn-border) !important; }
 
+/* Mobile: bigger context menu items */
+@media (max-width: 600px) {
+  .ctx-menu li { padding: 8px 24px 8px 28px; font-size: 13px; }
+}
+
 /* Submenu */
 .ctx-has-sub { padding-right: 16px !important; }
 .ctx-has-sub .ctx-submenu {
@@ -147,11 +166,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
   list-style: none;
 }
 .ctx-has-sub:hover .ctx-submenu { display: block; }
-.ctx-has-sub .ctx-submenu li { padding: 4px 16px; }
-.ctx-has-sub .ctx-submenu li:hover { background: var(--col-highlight); color: #fff; }
+.ctx-has-sub .ctx-submenu li { padding: 4px 16px; color: var(--col-text); }
+.ctx-has-sub .ctx-submenu li:hover { background: var(--col-highlight); color: var(--col-highlight-text); }
 .ctx-arrow { position: absolute; right: 6px; font-size: 9px; }
 
-/* ── Folder child icons (inside folder windows) ── */
+/* ── Folder child icons ── */
 .folder-child-icon {
   display: flex; flex-direction: column; align-items: center;
   width: 72px; padding: 6px 4px;
@@ -177,4 +196,22 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--fon
 ::-webkit-scrollbar-track { background: var(--col-scrollbar); }
 ::-webkit-scrollbar-thumb { background: var(--col-btn); border: 1px solid var(--col-border-dark); box-shadow: inset 1px 1px 0 var(--col-border-light); }
 
+/* Mobile: thin scrollbars */
+@media (max-width: 600px) {
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+}
+
 .hidden { display: none !important; }
+
+/* ── Webamp CSS-collision fix ──
+   Webamp uses generic class names like "window" that collide with our
+   .window rule. Neutralise our chrome styles inside Webamp's container. */
+#__webamp_container__ .window,
+#__webamp_container__ .window *,
+#__webamp_container__ * {
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+

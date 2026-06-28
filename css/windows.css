@@ -13,6 +13,19 @@
 .window.focused  { z-index: 500; }
 .window.minimized { display: none !important; }
 
+/* Mobile: windows fill viewport */
+@media (max-width: 600px) {
+  .window {
+    min-width: unset !important;
+    min-height: unset !important;
+    width: 100% !important;
+    height: calc(100vh - var(--taskbar-h)) !important;
+    left: 0 !important;
+    top: 0 !important;
+    border-radius: 0;
+  }
+}
+
 /* ── Title bar ── */
 .title-bar {
   background: var(--col-title-active);
@@ -20,9 +33,14 @@
   padding: 3px 4px 3px 6px;
   display: flex; align-items: center; gap: 6px;
   cursor: grab; min-height: 26px; flex-shrink: 0;
+  touch-action: none;
 }
 .window:not(.focused) .title-bar { background: var(--col-title-inactive); }
 .title-bar:active { cursor: grabbing; }
+
+@media (max-width: 600px) {
+  .title-bar { min-height: 36px; cursor: default; border-radius: 0; }
+}
 
 .title-bar-icon { font-size: 14px; flex-shrink: 0; }
 .title-bar-text {
@@ -40,6 +58,7 @@
   display: flex; align-items: center; justify-content: center;
   color: #000; padding: 0; line-height: 1;
   box-shadow: inset 1px 1px 0 rgba(255,255,255,0.7), inset -1px -1px 0 rgba(0,0,0,0.2);
+  -webkit-tap-highlight-color: transparent;
 }
 .title-btn:hover  { filter: brightness(1.1); }
 .title-btn:active { box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4); }
@@ -47,16 +66,22 @@
 .btn-close { background: linear-gradient(180deg,#e9503a 0%,#c0311b 100%); color: #fff; font-size: 12px; }
 .btn-close:hover { background: linear-gradient(180deg,#ff6a50 0%,#d94020 100%); }
 
-/* ── Window body ── */
-.window-body { flex: 1; overflow: auto; padding: 0; position: relative; }
-.window-body .window-content { width: 100%; height: 100%; }
+/* Mobile: bigger title buttons */
+@media (max-width: 600px) {
+  .title-btn { width: 30px; height: 30px; font-size: 14px; }
+}
 
-/* ── Resize handle ── */
+/* ── Window body ── */
+.window-body { flex: 1; overflow: hidden; padding: 0; position: relative; min-height: 0; }
+.window-body .window-content { width: 100%; height: 100%; overflow: hidden; }
+
+/* ── Resize handle — hidden on mobile ── */
 .resize-handle {
   position: absolute; bottom: 0; right: 0; width: 14px; height: 14px;
   cursor: nwse-resize; z-index: 10;
   background: linear-gradient(135deg, transparent 50%, var(--col-border-dark) 50%);
 }
+@media (max-width: 600px) { .resize-handle { display: none; } }
 
 /* ── OS Button ── */
 .os-btn {
@@ -66,6 +91,7 @@
   border-color: var(--col-border-light) var(--col-border-dark) var(--col-border-dark) var(--col-border-light);
   border-radius: 2px;
   font-family: var(--font-ui); font-size: 11px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .os-btn:hover  { background: var(--col-btn-hover); }
 .os-btn:active { border-color: var(--col-border-dark) var(--col-border-light) var(--col-border-light) var(--col-border-dark); }
@@ -112,7 +138,7 @@ fieldset.os-group legend { padding: 0 4px; font-weight: bold; font-size: 11px; }
 }
 .os-tab.active { background: var(--col-window-bg); font-weight: bold; z-index: 1; border-bottom: 2px solid var(--col-window-bg); }
 
-/* ── Content area (rich text inside windows) ── */
+/* ── Content area ── */
 .content-area { font-family: var(--font-ui); font-size: 12px; line-height: 1.6; color: var(--col-text); padding: 12px; }
 .content-area h1 { font-size: 18px; margin-bottom: 12px; color: #003399; }
 .content-area h2 { font-size: 14px; margin: 14px 0 6px; color: #003399; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
@@ -125,6 +151,13 @@ fieldset.os-group legend { padding: 0 4px; font-weight: bold; font-size: 11px; }
 .content-area code { font-family: var(--font-mono); background: #f0f0f0; border: 1px solid #ccc; padding: 0 3px; font-size: 11px; }
 .content-area pre { background: #1e1e1e; color: #d4d4d4; font-family: var(--font-mono); font-size: 11px; padding: 12px; overflow-x: auto; margin: 8px 0; border: 1px solid #000; }
 .content-area .tag { display: inline-block; background: #0a246a; color: #fff; padding: 1px 6px; border-radius: 2px; font-size: 10px; margin: 2px; }
+
+/* Mobile content area */
+@media (max-width: 600px) {
+  .content-area { font-size: 13px; }
+  .content-area h1 { font-size: 20px; }
+  .content-area h2 { font-size: 15px; }
+}
 
 /* ── Project cards ── */
 .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; padding: 10px; }

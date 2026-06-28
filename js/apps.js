@@ -39,35 +39,37 @@ const APPS = [
     startMenu: true,
     window: {
       title: "Raspberry Pi Projects",
-      width: 640,
+      width: 660,
       height: 480,
-      type: "projects",
+      type: "repo-list",
+      /*
+       * ══════════════════════════════════════════════════════
+       *  ADD RASPBERRY PI PROJECTS HERE
+       *
+       *  Each entry can have:
+       *    icon    — emoji
+       *    title   — display name
+       *    desc    — short description shown under the title
+       *    tags    — array of strings e.g. ["Python", "Flask"]
+       *
+       *  Pick ONE action per entry:
+       *    repo    — "owner/repo"  → opens README in a window
+       *    url     — "https://…"  → opens in a new browser tab
+       *    text    — "…"          → shows a small inline popup with your text
+       *
+       *  Examples:
+       *    { icon:"🌡️", title:"Weather Station", desc:"DHT22 + Flask dashboard",
+       *      tags:["Python","GPIO"], repo:"mithraskuipers/rpi-weather" }
+       *
+       *    { icon:"🕹️", title:"RetroPi Cabinet", desc:"Custom arcade cabinet",
+       *      tags:["RetroPie"], url:"https://mithraskuipers.github.io/retro/" }
+       *
+       *    { icon:"🤖", title:"Robot", desc:"Line-following robot",
+       *      tags:["Python","PID"], text:"Work in progress — repo coming soon." }
+       * ══════════════════════════════════════════════════════
+       */
       projects: [
-        {
-          id: "rpi-weather",
-          icon: "🌡️",
-          title: "Weather Station",
-          desc: "Full weather monitoring system with DHT22, BMP280, TFT display, SQLite logging and Flask dashboard.",
-          tags: ["Python", "SQLite", "GPIO", "Flask"],
-          link: "pages/rpi-weather.html",
-        },
-        {
-          id: "rpi-retro",
-          icon: "🕹️",
-          title: "RetroPi Cabinet",
-          desc: "Custom arcade cabinet with hand-wired buttons, LED strips, and RetroPie. 3D-printed joystick housing.",
-          tags: ["RetroPie", "3D Print", "Electronics"],
-          link: null,
-        },
-        {
-          id: "rpi-robot",
-          icon: "🤖",
-          title: "Autonomous Robot",
-          desc: "Line-following and obstacle-avoiding robot with ultrasonic + IR sensors and PID control.",
-          tags: ["Python", "PID", "Motors", "Sensors"],
-          link: null,
-        },
-        /* ← ADD MORE PI PROJECTS HERE */
+        /* ← ADD PROJECTS HERE */
       ],
     },
   },
@@ -79,60 +81,17 @@ const APPS = [
     startMenu: true,
     window: {
       title: "AI & Machine Learning Projects",
-      width: 640,
+      width: 660,
       height: 480,
-      type: "projects",
+      type: "repo-list",
+      /*
+       * ══════════════════════════════════════════════════════
+       *  ADD AI / ML PROJECTS HERE  (same format as Pi Projects)
+       *    repo / url / text  — pick one action per entry
+       * ══════════════════════════════════════════════════════
+       */
       projects: [
-        {
-          id: "ai-transformer",
-          icon: "🔀",
-          title: "Transformer Visualizer",
-          desc: "Interactive visualization of attention heads in a GPT-2 style transformer.",
-          tags: ["PyTorch", "D3.js", "NLP"],
-          link: "pages/ai-transformer.html",
-        },
-        {
-          id: "ai-diffusion",
-          icon: "🌫️",
-          title: "Diffusion Models Explained",
-          desc: "Step-by-step walkthrough of DDPM with animated forward and reverse diffusion.",
-          tags: ["PyTorch", "Math", "Animation"],
-          link: null,
-        },
-        {
-          id: "ai-rl",
-          icon: "🎮",
-          title: "RL Playground",
-          desc: "Live RL agent training in the browser using a simple gridworld environment.",
-          tags: ["JavaScript", "RL", "Canvas"],
-          link: null,
-        },
-        /* ← ADD MORE AI PROJECTS HERE */
-      ],
-    },
-  },
-
-  {
-    id: "blog",
-    label: "Blog",
-    icon: "📝",
-    startMenu: true,
-    window: {
-      title: "Blog & Notes",
-      width: 580,
-      height: 420,
-      type: "projects",
-      cardMode: "list",
-      projects: [
-        {
-          id: "blog-attention",
-          icon: "📄",
-          title: "Understanding Self-Attention",
-          desc: "From-scratch explanation of the attention mechanism with code and visualizations.",
-          tags: ["NLP", "Tutorial"],
-          link: "pages/ai-transformer.html",
-        },
-        /* ← ADD MORE BLOG POSTS HERE */
+        /* ← ADD PROJECTS HERE */
       ],
     },
   },
@@ -144,9 +103,48 @@ const APPS = [
     startMenu: true,
     window: {
       title: "Terminal — bash",
-      width: 560,
-      height: 380,
+      width: 620,
+      height: 420,
       type: "terminal",
+    },
+  },
+
+  {
+    id: "winamp",
+    label: "Winamp",
+    icon: "🎵",
+    startMenu: true,
+    window: {
+      title: "Winamp",
+      width: 275,
+      height: 420,
+      type: "winamp",
+    },
+  },
+
+  {
+    id: "minesweeper",
+    label: "Minesweeper",
+    icon: "💣",
+    startMenu: true,
+    window: {
+      title: "Minesweeper",
+      width: 340,
+      height: 400,
+      type: "minesweeper",
+    },
+  },
+
+  {
+    id: "solitaire",
+    label: "Solitaire",
+    icon: "🃏",
+    startMenu: true,
+    window: {
+      title: "Solitaire",
+      width: 740,
+      height: 560,
+      type: "solitaire",
     },
   },
 
@@ -171,8 +169,13 @@ const APPS = [
    Folders can contain any mix of kinds, recursively.
 ══════════════════════════════════════════════ */
 const DESKTOP_ITEMS = [
-  { kind: "app", label: "About Me", icon: "👤", appId: "about" },
-  { kind: "app", label: "Terminal", icon: "🖥️", appId: "terminal" },
+  { kind: "app", label: "About Me",    icon: "👤", appId: "about" },
+  { kind: "app", label: "Terminal",    icon: "🖥️", appId: "terminal" },
+  { kind: "app", label: "Winamp",      icon: "🎵", appId: "winamp" },
+  { kind: "app", label: "Minesweeper", icon: "💣", appId: "minesweeper" },
+  { kind: "app", label: "Solitaire",   icon: "🃏", appId: "solitaire" },
+  /* Easter egg — type 'bsod' in terminal or double-click this icon */
+  { kind: "app", label: "BSOD.exe",   icon: "💀", appId: "__bsod__" },
 
   {
     kind: "folder",
@@ -181,16 +184,9 @@ const DESKTOP_ITEMS = [
     children: [
       {
         kind: "app",
-        label: "All Pi Projects",
+        label: "Pi Projects",
         icon: "📋",
         appId: "rpi-projects",
-      },
-      {
-        kind: "page",
-        label: "Weather Station",
-        icon: "🌡️",
-        pageTitle: "Weather Station",
-        pageSrc: "pages/rpi-weather.html",
       },
       /* ← ADD PI PROJECT SHORTCUTS HERE */
     ],
@@ -207,24 +203,7 @@ const DESKTOP_ITEMS = [
         icon: "📋",
         appId: "ai-projects",
       },
-      {
-        kind: "page",
-        label: "Transformer Visualizer",
-        icon: "🔀",
-        pageTitle: "Transformer Visualizer",
-        pageSrc: "pages/ai-transformer.html",
-      },
       /* ← ADD AI PROJECT SHORTCUTS HERE */
-    ],
-  },
-
-  {
-    kind: "folder",
-    label: "Blog",
-    icon: "📝",
-    children: [
-      { kind: "app", label: "All Posts", icon: "📋", appId: "blog" },
-      /* ← ADD BLOG POST SHORTCUTS HERE */
     ],
   },
 
@@ -237,33 +216,48 @@ const DESKTOP_ITEMS = [
   },
 ];
 
+/*
+ * ══════════════════════════════════════════════════════════════════
+ *  GITHUB REPO SHORTCUTS
+ *  Each entry creates a desktop icon that opens the repo's README
+ *  in a window (fetched live from GitHub).
+ *
+ *  Required:
+ *    repo   — "owner/repo-name"
+ *
+ *  Optional:
+ *    icon   — emoji shown on the desktop icon  (default: "📦")
+ *    label  — display name                     (default: repo slug)
+ *    branch — branch to read README from       (default: "main")
+ *    width  — window width in px               (default: 720)
+ *    height — window height in px              (default: 540)
+ *
+ *  ── ADD A REPO ──────────────────────────────────────────────────
+ *  { repo: "mithraskuipers/my-cool-project", icon: "🚀", label: "Cool Project" },
+ * ══════════════════════════════════════════════════════════════════
+ */
 const GITHUB_REPOS = [
-  // { repo: "mithraskuipers/blablabla" },
-  // { repo: "mithraskuipers/blablabla", icon: "🧠", label: "psychology" },
+  // { repo: "mithraskuipers/example-repo",  icon: "📦", label: "Example"       },
+  // { repo: "mithraskuipers/another-repo",  icon: "🧠", label: "ML Stuff"      },
 ];
 
 const WALLPAPERS = [
-  /* Built-in solid colours */
-  { name: "XP Blue", color: "#3a6ea5" },
-  { name: "Midnight", color: "#0d1b2a" },
-  { name: "Forest", color: "#1a3a1a" },
-  { name: "Crimson", color: "#3a0a0a" },
-  { name: "Slate", color: "#2c2c3a" },
-  { name: "Warm Sand", color: "#8b7355" },
-  { name: "Pure Black", color: "#000000" },
+  /* ── Local wallpapers (files live in assets/wallpapers/) ── */
+  { name: "Bliss",     file: "bliss.jpg" },   // ← DEFAULT (index 0)
 
-  {
-    name: "XP",
-    url: "https://www.wallpaperhub.app/_next/image?url=https%3A%2F%2Fcdn.wallpaperhub.app%2Fcloudcache%2Fb%2Fd%2F7%2F6%2F4%2Fb%2Fbd764bb25d49a05105060185774ba14cd2c846f7.jpg&w=4500&q=100",
-  },
-  {
-    name: "Bliss (Unsplash)",
-    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920",
-  },
-  {
-    name: "Dark Forest",
-    url: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920",
-  },
+  /* ── Built-in solid colours ── */
+  { name: "XP Blue",   color: "#3a6ea5" },
+  { name: "Midnight",  color: "#0d1b2a" },
+  { name: "Forest",    color: "#1a3a1a" },
+  { name: "Crimson",   color: "#3a0a0a" },
+  { name: "Slate",     color: "#2c2c3a" },
+  { name: "Warm Sand", color: "#8b7355" },
+  { name: "Pure Black",color: "#000000" },
+
+  /* ── Internet wallpapers — uncomment to re-enable ── */
+  // { name: "XP (web)",      url: "https://www.wallpaperhub.app/_next/image?url=https%3A%2F%2Fcdn.wallpaperhub.app%2Fcloudcache%2Fb%2Fd%2F7%2F6%2F4%2Fb%2Fbd764bb25d49a05105060185774ba14cd2c846f7.jpg&w=4500&q=100" },
+  // { name: "Bliss (Unsplash)", url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920" },
+  // { name: "Dark Forest",   url: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920" },
 ];
 
 const TERMINAL_COMMANDS = {
@@ -308,7 +302,8 @@ const TERMINAL_COMMANDS = {
     banner [text]     print big ASCII banner
     matrix            go full matrix for 3s
     cowsay [text]     cow says something
-    hack              look very busy`,
+    hack              look very busy\
+    bsod              blue screen of death`,
 
   /* ── System ── */
   clear: () => "__clear__",
@@ -571,4 +566,35 @@ GITHUB_USER=mithraskuipers`,
     Screensaver.deactivate();
     return "Welcome back.";
   },
+
+  bsod: () => {
+    showBSOD();
+    return null;
+  },
 };
+
+/* ══════════════════════════════════════════════════════════════════
+   WINAMP TRACKS
+   Add tracks to the Winamp playlist here.
+══════════════════════════════════════════════════════════════════ */
+const WINAMP_TRACKS = [
+  {
+    metaData: { artist: 'Linkin Park', title: 'In The End (Mellen Gi & Tommee Profitt Remix)' },
+    url: 'https://archive.org/download/linkinparkintheendmellengiamptommeeprofittremix/Linkin%20Park%20-%20In%20The%20End%20%28Mellen%20Gi%20%26amp%3B%20Tommee%20Profitt%20Remix%29.mp3',
+  },
+  /* ← ADD MORE TRACKS HERE */
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   WINAMP SKINS
+   Paths are relative to index.html.
+   Comment out or leave empty if you have no skins — an empty array
+   makes Winamp load with the default built-in skin (no alert).
+   Add .wsz files to assets/winamp/skins/ then list them here.
+══════════════════════════════════════════════════════════════════ */
+const WINAMP_SKINS = [
+  { url: 'assets/winamp/skins/winamp_skin_wsz_06.zip', name: 'Winamp Skin 06' },
+  /* ← ADD MORE SKINS HERE */
+];
+// NOTE: initialSkin is intentionally NOT set — Webamp will use its
+// built-in default skin on startup. Users can switch via Options > Skins.

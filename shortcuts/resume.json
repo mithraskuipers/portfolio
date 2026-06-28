@@ -1,0 +1,9 @@
+{
+  "kind": "page",
+  "label": "Resume",
+  "icon": "📄",
+  "pageSrc": "pages/resume.html",
+  "pageTitle": "Resume",
+  "width": 500,
+  "height": 500
+}

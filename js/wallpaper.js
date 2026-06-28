@@ -6,13 +6,29 @@ const Wallpaper = (() => {
   /* ── Apply a wallpaper entry to the desktop ── */
   function apply(entry, position) {
     const d = document.getElementById('desktop');
-    const imgSrc = entry.url || (entry.file ? `assets/bg/${entry.file}` : null);
+    const imgSrc = entry.url || (entry.file ? `assets/wallpapers/${entry.file}` : null);
     if (imgSrc) {
       d.style.backgroundImage    = `url('${imgSrc}')`;
-      d.style.backgroundSize     = position || 'cover';
-      d.style.backgroundPosition = 'center';
-      d.style.backgroundRepeat   = position === 'auto' ? 'repeat' : 'no-repeat';
       d.style.backgroundColor    = '#000';
+      if (position === 'auto') {
+        // Tile
+        d.style.backgroundSize     = 'auto';
+        d.style.backgroundPosition = 'top left';
+        d.style.backgroundRepeat   = 'repeat';
+      } else if (position === 'contain') {
+        d.style.backgroundSize     = 'contain';
+        d.style.backgroundPosition = 'center';
+        d.style.backgroundRepeat   = 'no-repeat';
+      } else if (position === 'center') {
+        d.style.backgroundSize     = 'auto';
+        d.style.backgroundPosition = 'center';
+        d.style.backgroundRepeat   = 'no-repeat';
+      } else {
+        // 'cover' — default / stretch-fill
+        d.style.backgroundSize     = 'cover';
+        d.style.backgroundPosition = 'center';
+        d.style.backgroundRepeat   = 'no-repeat';
+      }
     } else {
       d.style.backgroundImage = 'none';
       d.style.backgroundColor = entry.color || '#3a6ea5';
@@ -29,7 +45,9 @@ const Wallpaper = (() => {
         return;
       }
     } catch (_) {}
-    if (WALLPAPERS.length) apply(WALLPAPERS[0]);
+    // Default: index 0 = Bliss (local file)
+    currentIdx = 0;
+    apply(WALLPAPERS[0], 'cover');
   }
 
   /* ── Open the dialog ── */
@@ -97,7 +115,7 @@ const Wallpaper = (() => {
                 <option value="cover">Stretch (fill)</option>
                 <option value="contain">Fit</option>
                 <option value="auto">Tile</option>
-                <option value="50% 50% / auto">Center</option>
+                <option value="center">Center</option>
               </select>
             </fieldset>
 
@@ -121,7 +139,7 @@ const Wallpaper = (() => {
       row.dataset.idx   = idx;
 
       const swatch = document.createElement('span');
-      const imgSrc = wp.url || (wp.file ? `assets/bg/${wp.file}` : null);
+      const imgSrc = wp.url || (wp.file ? `assets/wallpapers/${wp.file}` : null);
       swatch.style.cssText = `display:inline-block;width:20px;height:14px;border:1px solid #888;flex-shrink:0;vertical-align:middle;
         ${imgSrc ? `background:url('${imgSrc}') center/cover;` : `background:${wp.color};`}`;
 
@@ -151,7 +169,7 @@ const Wallpaper = (() => {
   function _previewWp(container, idx) {
     const wp = WALLPAPERS[idx]; if (!wp) return;
     const inner = container.querySelector('#wp-preview-inner'); if (!inner) return;
-    const imgSrc = wp.url || (wp.file ? `assets/bg/${wp.file}` : null);
+    const imgSrc = wp.url || (wp.file ? `assets/wallpapers/${wp.file}` : null);
     if (imgSrc) {
       inner.style.backgroundImage    = `url('${imgSrc}')`;
       inner.style.backgroundSize     = 'cover';

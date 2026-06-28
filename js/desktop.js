@@ -14,10 +14,10 @@ const Desktop = (() => {
   }
 
   /* ── State ── */
-  let entries  = [];       // [{ item, el, col, row }]
+  let entries  = [];
   let selected = new Set();
 
-  /* ── Next free grid cell (column-first, XP style) ── */
+  /* ── Next free grid cell ── */
   function nextFreeCell() {
     const occ = new Set(entries.map(e => `${e.col},${e.row}`));
     for (let col = 0; col < gridCols(); col++)
@@ -38,7 +38,7 @@ const Desktop = (() => {
       <div class="icon-img">${item.icon}</div>
       <div class="icon-label">${item.label}</div>`;
 
-    /* click → select */
+    /* Mouse: click → select, drag, dblclick → open */
     el.addEventListener('mousedown', e => {
       if (e.button !== 0) return;
       e.stopPropagation();
@@ -46,9 +46,27 @@ const Desktop = (() => {
       setSel(item._id, true);
       startIconDrag(e, item._id);
     });
-
-    /* double-click → open */
     el.addEventListener('dblclick', e => { e.stopPropagation(); activateDesktopItem(item); });
+
+    /* Touch: tap = open, with tap detection */
+    let tapTimer = null;
+    let tapCount = 0;
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      tapCount++;
+      if (tapCount === 1) {
+        // Select on first tap
+        if (!selected.has(item._id)) clearSel();
+        setSel(item._id, true);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 400);
+      } else if (tapCount >= 2) {
+        // Double-tap: open
+        clearTimeout(tapTimer);
+        tapCount = 0;
+        activateDesktopItem(item);
+      }
+    });
 
     /* right-click → icon menu */
     el.addEventListener('contextmenu', e => {
@@ -71,7 +89,6 @@ const Desktop = (() => {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('desktop-pos') || '{}'); } catch(_) {}
 
-    /* Merge GITHUB_REPOS into desktop items (de-duplicated by repo slug) */
     const repoItems = (typeof GITHUB_REPOS !== 'undefined' ? GITHUB_REPOS : []).map(r => ({
       kind:  'github',
       label: r.label || r.repo.split('/').pop(),
@@ -110,7 +127,7 @@ const Desktop = (() => {
     entries.forEach(e => e.el.classList.remove('selected'));
   }
 
-  /* ── Icon drag (move on desktop) ── */
+  /* ── Icon drag (mouse only — touch opens) ── */
   function startIconDrag(e, id) {
     const sx = e.clientX, sy = e.clientY;
     let moved = false;
@@ -150,7 +167,7 @@ const Desktop = (() => {
     document.addEventListener('mouseup',   onUp);
   }
 
-  /* ── Rubber-band selection ── */
+  /* ── Rubber-band selection (mouse only) ── */
   function initRubberBand() {
     const rectEl  = document.getElementById('selection-rect');
     const desktop = document.getElementById('desktop');
@@ -207,26 +224,70 @@ const Desktop = (() => {
 
   function refresh() { hideAllCtx(); build(); }
 
+  /* ── Load shortcuts from shortcuts/*.json via shortcuts/index.json ── */
+  async function loadShortcuts() {
+    let filenames;
+    try {
+      const res = await fetch('shortcuts/index.json');
+      if (!res.ok) {
+        console.warn('[shortcuts] index.json fetch failed:', res.status, res.url);
+        return;
+      }
+      filenames = await res.json();
+    } catch (e) {
+      console.warn('[shortcuts] Could not load index.json:', e);
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      filenames.map(f => fetch('shortcuts/' + f).then(r => {
+        if (!r.ok) { console.warn('[shortcuts] failed to load:', f, r.status); return null; }
+        return r.json();
+      }))
+    );
+
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') {
+        console.warn('[shortcuts] error loading', filenames[i], r.reason);
+        return;
+      }
+      const item = r.value;
+      if (!item) return;
+      if (DESKTOP_ITEMS.find(d => d.label === item.label && d.kind === item.kind)) {
+        console.log('[shortcuts] skipped duplicate:', item.label);
+        return;
+      }
+      console.log('[shortcuts] added:', item.label, item.kind);
+      DESKTOP_ITEMS.push(item);
+    });
+  }
+
   /* ── Init ── */
-  function init() {
+  async function init() {
+    await loadShortcuts();
     build();
     initRubberBand();
 
-    /* Desktop right-click */
-    document.getElementById('desktop').addEventListener('contextmenu', e => {
+    const desktop = document.getElementById('desktop');
+
+    desktop.addEventListener('contextmenu', e => {
       if (e.target.closest('.desktop-icon,.window,.ctx-menu,#taskbar,#start-menu')) return;
       e.preventDefault();
       hideAllCtx();
       showCtxMenu('ctx-desktop', e.clientX, e.clientY);
     });
 
-    /* Click on empty desktop → deselect + close menus */
-    document.getElementById('desktop').addEventListener('mousedown', e => {
+    desktop.addEventListener('mousedown', e => {
       if (e.target.closest('.desktop-icon,.window,.ctx-menu,#taskbar,#start-menu')) return;
       clearSel(); hideAllCtx();
     });
 
-    /* Keyboard shortcuts */
+    // Touch: tap on empty desktop closes menus
+    desktop.addEventListener('touchend', e => {
+      if (e.target.closest('.desktop-icon,.window,.ctx-menu,#taskbar,#start-menu')) return;
+      clearSel(); hideAllCtx();
+    });
+
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { clearSel(); hideAllCtx(); }
       if (e.key === 'F2' && selected.size === 1) {
@@ -251,7 +312,6 @@ function showCtxMenu(id, x, y) {
   menu.classList.remove('hidden');
   menu.style.left = x + 'px';
   menu.style.top  = y + 'px';
-  /* keep on-screen after paint */
   requestAnimationFrame(() => {
     const mw = menu.offsetWidth, mh = menu.offsetHeight;
     if (x + mw > window.innerWidth  - 4) menu.style.left = (window.innerWidth  - mw - 4) + 'px';
@@ -263,7 +323,6 @@ function hideAllCtx() {
   document.querySelectorAll('.ctx-menu').forEach(m => m.classList.add('hidden'));
 }
 
-/* Close context menus when clicking outside */
 document.addEventListener('mousedown', e => {
   if (!e.target.closest('.ctx-menu')) hideAllCtx();
 }, true);
@@ -283,15 +342,12 @@ const CtxIcon = {
   rename() {
     hideAllCtx();
     if (!this._target) return;
-    /* Find the element on desktop or inside a folder window */
     const id  = this._target._id;
     const el  = document.querySelector(`[data-item-id="${id}"]`);
     if (el) {
-      /* desktop icon */
       const entry = { item: this._target, el };
       startRename(entry);
     } else {
-      /* folder child — just prompt */
       const newLabel = prompt('Rename:', this._target.label);
       if (newLabel && newLabel.trim()) this._target.label = newLabel.trim();
     }
@@ -327,7 +383,7 @@ const CtxIcon = {
   }
 };
 
-/* ── Activate any desktop item (shared between desktop + folder windows) ── */
+/* ── Activate any desktop item ── */
 function activateDesktopItem(item) {
   switch (item.kind) {
     case 'app':
@@ -357,7 +413,7 @@ function activateDesktopItem(item) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   INLINE RENAME  (contenteditable label)
+   INLINE RENAME
 ══════════════════════════════════════════════════════════════════ */
 function startRename(entry) {
   const labelEl = entry.el.querySelector('.icon-label');
