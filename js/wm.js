@@ -377,6 +377,8 @@ const WM = (() => {
     if (id === 'winamp') {
       const wc = document.getElementById('__webamp_container__');
       if (wc) wc.style.display = '';
+      const sw = document.getElementById('__webamp_scale_wrap__');
+      if (sw) sw.style.display = '';
     }
   }
 
@@ -387,6 +389,8 @@ const WM = (() => {
     if (id === 'winamp') {
       const wc = document.getElementById('__webamp_container__');
       if (wc) wc.style.display = 'none';
+      const sw = document.getElementById('__webamp_scale_wrap__');
+      if (sw) sw.style.display = 'none';
     }
   }
 
@@ -411,6 +415,7 @@ const WM = (() => {
     if (id === 'winamp') {
       document.getElementById('__webamp_frame__')?.remove();
       document.getElementById('__webamp_container__')?.remove();
+      document.getElementById('__webamp_scale_wrap__')?.remove();
     }
   }
 
@@ -521,24 +526,72 @@ const WM = (() => {
 
     // Destroy any previous instance
     document.getElementById('__webamp_container__')?.remove();
+    document.getElementById('__webamp_scale_wrap__')?.remove();
 
-    // Webamp renders directly on the page — no iframe.
-    // We give it a dedicated container div so we can scope CSS to it.
-    const waContainer = document.createElement('div');
-    waContainer.id = '__webamp_container__';
-    // The container itself is invisible; Webamp positions its own
-    // sub-windows with fixed/absolute positioning inside it.
-    waContainer.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:9000;pointer-events:none;';
-    document.body.appendChild(waContainer);
+    // Mobile: Webamp panels are hardcoded ~275px wide and cannot reflow.
+    // We wrap them in a scaled fixed overlay so everything fits the screen.
+    const isMobile = window.innerWidth <= 600;
+    const taskbarH = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--taskbar-h')
+    ) || 40;
+    const availH = window.innerHeight - taskbarH;
+    const availW = window.innerWidth;
+
+    // Webamp three-panel stack: ~275px wide x ~268px tall
+    const WEBAMP_W = 275;
+    const WEBAMP_H = 268;
+    const scale = isMobile
+      ? Math.min((availW - 8) / WEBAMP_W, (availH - 8) / WEBAMP_H, 1)
+      : 1;
+
+    let waContainer;
+
+    if (isMobile) {
+      const scaleWrap = document.createElement('div');
+      scaleWrap.id = '__webamp_scale_wrap__';
+      scaleWrap.style.cssText =
+        'position:fixed;top:0;left:0;width:' + availW + 'px;height:' + availH + 'px;' +
+        'z-index:9000;overflow:hidden;pointer-events:none;';
+
+      const scaledW = WEBAMP_W * scale;
+      const scaledH = WEBAMP_H * scale;
+      const offsetL = Math.round((availW - scaledW) / 2);
+      const offsetT = Math.round((availH - scaledH) / 2);
+
+      waContainer = document.createElement('div');
+      waContainer.id = '__webamp_container__';
+      waContainer.style.cssText =
+        'position:absolute;top:0;left:0;width:0;height:0;pointer-events:none;' +
+        'transform:scale(' + scale + ');transform-origin:top left;' +
+        'margin-top:' + offsetT + 'px;margin-left:' + offsetL + 'px;';
+
+      scaleWrap.appendChild(waContainer);
+      document.body.appendChild(scaleWrap);
+    } else {
+      waContainer = document.createElement('div');
+      waContainer.id = '__webamp_container__';
+      waContainer.style.cssText =
+        'position:fixed;top:0;left:0;width:0;height:0;z-index:9000;pointer-events:none;';
+      document.body.appendChild(waContainer);
+    }
+
+    function enablePointerEvents() {
+      const wrap = document.getElementById('__webamp_scale_wrap__');
+      if (wrap) wrap.style.pointerEvents = '';
+      waContainer.style.pointerEvents = '';
+    }
 
     function initWebamp() {
+      const mainTop  = isMobile ? 0 : 40;
+      const mainLeft = isMobile ? 0 : 60;
+
       const opts = {
         initialTracks: TRACKS,
         zIndex: 9000,
         windowLayout: {
-          main:      { position: { top: 40,  left: 60 }, closed: false },
-          equalizer: { position: { top: 156, left: 60 }, closed: false },
-          playlist:  { position: { top: 272, left: 60 }, closed: false,
+          main:      { position: { top: mainTop,       left: mainLeft }, closed: false },
+          equalizer: { position: { top: mainTop + 116, left: mainLeft }, closed: false },
+          playlist:  { position: { top: mainTop + 152, left: mainLeft }, closed: false,
                        size: { extraHeight: 4, extraWidth: 0 } },
         },
       };
@@ -546,10 +599,13 @@ const WM = (() => {
 
       try {
         const wa = new Webamp(opts);
-        wa.renderWhenReady(waContainer).catch(e => console.error('Webamp render failed:', e));
+        wa.renderWhenReady(waContainer)
+          .then(() => setTimeout(enablePointerEvents, 400))
+          .catch(e => console.error('Webamp render failed:', e));
         wa.onClose(() => {
           WM.close('winamp');
           waContainer.remove();
+          document.getElementById('__webamp_scale_wrap__')?.remove();
         });
       } catch (e) {
         console.error('Webamp init error:', e);
