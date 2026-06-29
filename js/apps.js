@@ -122,6 +122,8 @@ const APPS = [
     },
   },
 
+  /* DOS games are auto-discovered at boot — see initDosGames() below */
+
   {
     id: "minesweeper",
     label: "Minesweeper",
@@ -172,6 +174,7 @@ const DESKTOP_ITEMS = [
   { kind: "app", label: "About Me",    icon: "👤", appId: "about" },
   { kind: "app", label: "Terminal",    icon: "🖥️", appId: "terminal" },
   { kind: "app", label: "Winamp",      icon: "🎵", appId: "winamp" },
+  /* DOS game icons are injected here automatically by initDosGames() */
   { kind: "app", label: "Minesweeper", icon: "💣", appId: "minesweeper" },
   { kind: "app", label: "Solitaire",   icon: "🃏", appId: "solitaire" },
   /* Easter egg — type 'bsod' in terminal or double-click this icon */
@@ -598,3 +601,100 @@ const WINAMP_SKINS = [
 ];
 // NOTE: initialSkin is intentionally NOT set — Webamp will use its
 // built-in default skin on startup. Users can switch via Options > Skins.
+
+
+/* ══════════════════════════════════════════════════════════════════
+   DOS GAME AUTO-DISCOVERY
+   ─────────────────────────────────────────────────────────────────
+   Drop any .zip bundle into  assets/dos/games/  and it will
+   automatically appear as a desktop icon and Start Menu entry.
+
+   To customise a game's label or icon, add an entry to the catalog:
+     'filename-without-extension': { label: 'My Game', icon: '🎮' }
+
+   Unknown zips get a generic label (title-cased filename) + 🕹️ icon.
+══════════════════════════════════════════════════════════════════ */
+const DOS_GAME_CATALOG = {
+  'jazz':        { label: 'Jazz Jackrabbit', icon: '🐰' },
+  'doom':        { label: 'DOOM',            icon: '👹' },
+  'wolf3d':      { label: 'Wolfenstein 3D',  icon: '🐺' },
+  'commander':   { label: 'Commander Keen',  icon: '🚀' },
+  'duke3d':      { label: 'Duke Nukem 3D',   icon: '💥' },
+  'quake':       { label: 'Quake',           icon: '🔱' },
+  'heretic':     { label: 'Heretic',         icon: '🏹' },
+  'hexen':       { label: 'Hexen',           icon: '⚔️' },
+  'warcraft':    { label: 'Warcraft',        icon: '⚔️' },
+  'starcraft':   { label: 'StarCraft',       icon: '🛸' },
+  'diablo':      { label: 'Diablo',          icon: '😈' },
+  'lemmings':    { label: 'Lemmings',        icon: '🐾' },
+  'prince':      { label: 'Prince of Persia',icon: '🗡️' },
+  'tetris':      { label: 'Tetris',          icon: '🟦' },
+  'pacman':      { label: 'Pac-Man',         icon: '🟡' },
+  'sokoban':     { label: 'Sokoban',         icon: '📦' },
+};
+
+/**
+ * Fetches the games directory listing, finds all .zip files,
+ * registers them as APPS entries and injects desktop icons.
+ * Called once during boot (os.js).
+ */
+async function initDosGames() {
+  const DIR = 'assets/dos/games/';
+
+  let zips = [];
+  try {
+    const res = await fetch(DIR);
+    if (!res.ok) return; // directory not there yet — silently skip
+    const html = await res.text();
+
+    /* Parse standard SimpleHTTPRequestHandler / Nginx directory listing */
+    const re = /href="([^"?#]+\.zip)"/gi;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const filename = m[1].replace(/.*\//, ''); // strip any path prefix
+      if (!zips.includes(filename)) zips.push(filename);
+    }
+  } catch (_) {
+    return; // network error or CORS — skip silently
+  }
+
+  if (!zips.length) return;
+
+  zips.forEach(zip => {
+    const stem = zip.replace(/\.zip$/i, '').toLowerCase();
+    const meta = DOS_GAME_CATALOG[stem] || {
+      label: stem.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      icon:  '🕹️',
+    };
+
+    const appId = 'dos-' + stem;
+
+    /* Avoid duplicates if called more than once */
+    if (APPS.find(a => a.id === appId)) return;
+
+    /* Register in APPS */
+    APPS.push({
+      id: appId,
+      label: meta.label,
+      icon: meta.icon,
+      startMenu: true,
+      window: {
+        title: `MS-DOS Prompt — ${zip.toUpperCase()}`,
+        width: 660,
+        height: 480,
+        type: 'dosbox',
+        bundleUrl: DIR + zip,
+      },
+    });
+
+    /* Inject desktop icon */
+    DESKTOP_ITEMS.splice(
+      DESKTOP_ITEMS.findIndex(d => d.appId === '__bsod__'), 0,
+      { kind: 'app', label: meta.label, icon: meta.icon, appId }
+    );
+  });
+
+  /* Rebuild Start Menu and desktop to reflect new entries */
+  if (typeof buildStartMenu === 'function') buildStartMenu();
+  if (typeof Desktop !== 'undefined' && typeof Desktop.refresh === 'function') Desktop.refresh();
+}

@@ -106,6 +106,10 @@ const WM = (() => {
         renderWinamp(container);
         break;
 
+      case "dosbox":
+        renderDosbox(win, container);
+        break;
+
       case "minesweeper":
         renderMinesweeper(container);
         break;
@@ -409,7 +413,33 @@ const WM = (() => {
 
   function close(id) {
     if (!windows[id]) return;
-    windows[id].el.remove();
+    const winEl      = windows[id].el;
+    const winContent = winEl.querySelector('.window-content');
+
+    /* ── Kill DOS emulator + audio ── */
+    if (winContent && winContent._dosCi) {
+      const ci = winContent._dosCi;
+      try { ci.exit();   } catch (_) {}
+      try { ci.stop();   } catch (_) {}
+      try { ci.destroy(); } catch (_) {}
+      /* Belt-and-suspenders: close any Web Audio context the emulator opened */
+      try {
+        if (ci.emulator?.audioContext)       ci.emulator.audioContext.close();
+        if (ci.ci?.audioContext)             ci.ci.audioContext.close();
+      } catch (_) {}
+      winContent._dosCi = null;
+    }
+
+    /* Kill ALL AudioContexts on the page that are running
+       (js-dos doesn't always expose its context — catch them all) */
+    try {
+      if (window._dosAudioContexts) {
+        window._dosAudioContexts.forEach(ctx => { try { ctx.close(); } catch(_){} });
+        window._dosAudioContexts = [];
+      }
+    } catch (_) {}
+
+    winEl.remove();
     delete windows[id];
     removeTaskbarItem(id);
     if (id === 'winamp') {
@@ -624,7 +654,129 @@ const WM = (() => {
   }
 
 
-  function renderMinesweeper(container) {
+  function renderDosbox(win, container) {
+    container.style.cssText = 'height:100%;width:100%;background:#000;overflow:hidden;position:relative;';
+
+    /* ── Track AudioContexts so we can kill audio on close ── */
+    if (!window._audioCtxPatched) {
+      window._dosAudioContexts = [];
+      const OrigAC = window.AudioContext || window.webkitAudioContext;
+      if (OrigAC) {
+        window.AudioContext = function(...a) {
+          const ctx = new OrigAC(...a);
+          window._dosAudioContexts.push(ctx);
+          return ctx;
+        };
+        window.AudioContext.prototype = OrigAC.prototype;
+        if (window.webkitAudioContext) window.webkitAudioContext = window.AudioContext;
+      }
+      window._audioCtxPatched = true;
+    }
+
+    /* ── Loading overlay ── */
+    const status = document.createElement('div');
+    status.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#39ff14;font-family:"Courier New",monospace;font-size:13px;gap:10px;z-index:30;background:#000;';
+    status.innerHTML =
+      '<div style="font-size:32px;">\uD83D\uDDA5\uFE0F</div>' +
+      '<div id="_dos_msg">Loading DOS\u2026</div>' +
+      '<div style="width:200px;height:6px;background:#111;border:1px solid #39ff14;border-radius:3px;overflow:hidden;">' +
+      '<div id="_dos_fill" style="height:100%;width:0%;background:#39ff14;transition:width 0.3s;"></div></div>';
+    container.appendChild(status);
+
+    /* ── Mount point ── */
+    const dosEl = document.createElement('div');
+    dosEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;overflow:hidden;';
+    container.appendChild(dosEl);
+
+    /* ── MutationObserver: hide chrome, fill canvas ── */
+    function applyToNode(node) {
+      if (node.nodeType !== 1) return;
+      if (node.tagName === 'CANVAS') {
+        node.style.cssText = 'position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;display:block!important;';
+        let el = node.parentElement;
+        while (el && el !== dosEl) {
+          el.style.cssText = 'position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;overflow:hidden!important;';
+          el = el.parentElement;
+        }
+        status.style.transition = 'opacity 0.5s';
+        status.style.opacity = '0';
+        setTimeout(function() { try { status.remove(); } catch(_){} }, 550);
+      } else {
+        setTimeout(function() {
+          if (!node.querySelector('canvas')) {
+            node.style.setProperty('display', 'none', 'important');
+          }
+        }, 0);
+      }
+    }
+
+    const obs = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) { m.addedNodes.forEach(applyToNode); });
+    });
+    obs.observe(dosEl, { childList: true, subtree: true });
+
+    function setMsg(txt, pct) {
+      var m = document.getElementById('_dos_msg');
+      var f = document.getElementById('_dos_fill');
+      if (m) m.textContent = txt;
+      if (f && pct != null) f.style.width = Math.min(100, pct) + '%';
+    }
+
+    function start() {
+      /* Remove any js-dos CSS injected previously */
+      var oldCss = document.getElementById('__jsdos_css__');
+      if (oldCss) oldCss.remove();
+
+      try {
+        /* js-dos v8: Dos(el, opts) returns ci synchronously.
+           ci.ready is a Promise that resolves when emulator is running.
+           Do NOT pass backend — let js-dos pick automatically. */
+        var ci = Dos(dosEl, {
+          url: win.bundleUrl,
+          onprogress: function(stage, total, loaded) {
+            var pct = total > 0 ? Math.round(loaded / total * 100) : 0;
+            setMsg(stage + ' ' + pct + '%', pct);
+          },
+        });
+
+        /* ci may be the object directly or a thenable depending on build */
+        if (ci && typeof ci.then === 'function') {
+          ci.then(function(c) {
+            container._dosCi = c;
+            obs.disconnect();
+          }).catch(function(e) {
+            console.error('js-dos:', e);
+            setMsg('\u26A0\uFE0F Failed: ' + e.message);
+          });
+        } else {
+          /* Synchronous return — .ready may or may not exist */
+          container._dosCi = ci;
+          obs.disconnect();
+          if (ci && ci.ready && typeof ci.ready.then === 'function') {
+            ci.ready.catch(function(e) {
+              console.error('js-dos ready:', e);
+              setMsg('\u26A0\uFE0F ' + e.message);
+            });
+          }
+        }
+      } catch(e) {
+        console.error('js-dos init:', e);
+        setMsg('\u26A0\uFE0F ' + e.message);
+      }
+    }
+
+    if (typeof Dos !== 'undefined') {
+      start();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://v8.js-dos.com/latest/js-dos.js';
+      s.onload = start;
+      s.onerror = function() { setMsg('\u26A0\uFE0F Could not load js-dos.'); };
+      document.head.appendChild(s);
+    }
+  }
+
+    function renderMinesweeper(container) {
     container.style.cssText = 'height:100%;display:flex;flex-direction:column;align-items:center;background:#c0c0c0;font-family:Tahoma,sans-serif;overflow:auto;';
 
     const ROWS = 9, COLS = 9, MINES = 10;

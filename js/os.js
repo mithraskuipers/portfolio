@@ -101,6 +101,7 @@ function showBSOD() {
   buildStartMenu();
   Wallpaper.loadSaved();
   await Desktop.init();
+  await initDosGames();   // auto-discover assets/dos/games/*.zip
   Screensaver.init();
 
   /* Close start menu when clicking outside it */
